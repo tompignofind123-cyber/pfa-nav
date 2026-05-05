@@ -20,7 +20,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, TextSubstitution
+from launch.substitutions import LaunchConfiguration, PythonExpression, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.descriptions import ParameterFile
 from nav2_common.launch import RewrittenYaml
@@ -45,6 +45,8 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration("use_respawn")
     rviz_config_file = LaunchConfiguration("rviz_config_file")
     use_rviz = LaunchConfiguration("use_rviz")
+    auto_save_map = LaunchConfiguration("auto_save_map")
+    auto_save_map_interval = LaunchConfiguration("auto_save_map_interval")
 
     configured_params = ParameterFile(
         RewrittenYaml(
@@ -77,7 +79,7 @@ def generate_launch_description():
 
     declare_world_cmd = DeclareLaunchArgument(
         "world",
-        default_value="rmuc_2026",
+        default_value="test",
         description="Select world: 'rmul_2024' or 'rmuc_2024' or 'rmul_2025' or 'rmuc_2025' or 'game' (map file share the same name as the this parameter)",
     )
 
@@ -139,6 +141,18 @@ def generate_launch_description():
         "use_rviz", default_value="True", description="Whether to start RVIZ"
     )
 
+    declare_auto_save_map_cmd = DeclareLaunchArgument(
+        "auto_save_map",
+        default_value="True",
+        description="Whether to periodically save map files in SLAM mode",
+    )
+
+    declare_auto_save_map_interval_cmd = DeclareLaunchArgument(
+        "auto_save_map_interval",
+        default_value="120.0",
+        description="Periodic map save interval in seconds",
+    )
+
     start_velodyne_convert_tool = Node(
         package="ign_sim_pointcloud_tool",
         executable="ign_sim_pointcloud_tool_node",
@@ -196,6 +210,30 @@ def generate_launch_description():
         }.items(),
     )
 
+    start_periodic_map_saver = Node(
+        package="pb2025_nav_bringup",
+        executable="periodic_map_saver.py",
+        name="periodic_map_saver",
+        output="screen",
+        namespace=namespace,
+        condition=IfCondition(
+            PythonExpression(
+                ["'", slam, "' == 'True' and '", auto_save_map, "' == 'True'"]
+            )
+        ),
+        parameters=[
+            {
+                "save_interval_sec": auto_save_map_interval,
+                "map_dir": "/home/tompig/pfa-nav-main/src/pb2025_sentry_nav/pb2025_nav_bringup/map/simulation",
+                "map_topic": "map",
+                "image_format": "pgm",
+                "map_mode": "trinary",
+                "free_thresh": 0.25,
+                "occupied_thresh": 0.65,
+            }
+        ],
+    )
+
     ld = LaunchDescription()
 
     # Declare the launch options
@@ -212,6 +250,8 @@ def generate_launch_description():
     ld.add_action(declare_rviz_config_file_cmd)
     ld.add_action(declare_use_rviz_cmd)
     ld.add_action(declare_use_respawn_cmd)
+    ld.add_action(declare_auto_save_map_cmd)
+    ld.add_action(declare_auto_save_map_interval_cmd)
 
     # Add the actions to launch all of the navigation nodes
     ld.add_action(start_velodyne_convert_tool)
@@ -219,5 +259,6 @@ def generate_launch_description():
     ld.add_action(bringup_cmd)
     ld.add_action(joy_teleop_cmd)
     ld.add_action(rviz_cmd)
+    ld.add_action(start_periodic_map_saver)
 
     return ld

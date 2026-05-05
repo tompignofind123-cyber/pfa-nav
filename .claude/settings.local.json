@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 *)",
+      "Bash(mkdir -p /tmp/converter_test)",
+      "Bash(cp /home/tompig/pfa-nav-main/radar_map_conversion_20260430_212917/source_assets/source_map.pgm /tmp/converter_test/test_map.pgm)",
+      "Bash(cp /home/tompig/pfa-nav-main/radar_map_conversion_20260430_212917/source_assets/source_scans.pcd /tmp/converter_test/test_scans.pcd)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(mkdir -p /tmp/align_test_fixture)",
+      "Bash(cp /home/tompig/pfa-nav-main/radar_map_conversion_20260430_212917/source_assets/source_map.pgm /tmp/align_test_fixture/orig.pgm)"
+    ]
+  }
+}

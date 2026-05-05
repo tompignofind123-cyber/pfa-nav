@@ -142,6 +142,31 @@ You can start the project with the following commands. Use the `Nav2 Goal` plugi
 
 Single Robot:
 
+Full startup (Gazebo + Navigation):
+
+Terminal 1 (start Gazebo):
+
+```bash
+cd /home/tompig/pfa-nav-main
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch rmu_gazebo_simulator bringup_sim.launch.py world:=rmuc_2026
+```
+
+Terminal 2 (start navigation):
+
+```bash
+cd /home/tompig/pfa-nav-main
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch pb2025_nav_bringup rm_navigation_simulation_launch.py \
+world:=rmuc_2026 \
+slam:=False
+```
+
+> [!NOTE]
+> After Gazebo starts, click the orange-red `启动` button in the lower-left corner to start simulation clock.
+
 Navigation mode：
 
 ```bash
@@ -154,7 +179,10 @@ SLAM mode：
 
 ```bash
 ros2 launch pb2025_nav_bringup rm_navigation_simulation_launch.py \
-slam:=True
+world:=rmuc_2026 \
+slam:=True \
+auto_save_map:=True \
+auto_save_map_interval:=20.0
 ```
 
 Save map：`ros2 run nav2_map_server map_saver_cli -f <YOUR_MAP_NAME>  --ros-args -r __ns:=/red_standard_robot1`

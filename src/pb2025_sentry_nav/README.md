@@ -145,6 +145,31 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 单机器人：
 
+完整启动（Gazebo + 导航）：
+
+终端 1（启动 Gazebo）：
+
+```bash
+cd /home/tompig/pfa-nav-main
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch rmu_gazebo_simulator bringup_sim.launch.py world:=rmuc_2026
+```
+
+终端 2（启动导航）：
+
+```bash
+cd /home/tompig/pfa-nav-main
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch pb2025_nav_bringup rm_navigation_simulation_launch.py \
+world:=rmuc_2026 \
+slam:=False
+```
+
+> [!NOTE]
+> Gazebo 启动后需要点击左下角橙红色 `启动` 按钮，仿真时钟才会开始运行。
+
 导航模式：
 
 ```bash
@@ -157,8 +182,14 @@ slam:=False
 
 ```bash
 ros2 launch pb2025_nav_bringup rm_navigation_simulation_launch.py \
-slam:=True
+world:=rmuc_2026 \
+slam:=True \
+auto_save_map:=True \
+auto_save_map_interval:=20.0
 ```
+
+> [!TIP]
+> 在 `slam:=True` 且 `auto_save_map:=True` 时，`periodic_map_saver` 会在退出（如 `Ctrl+C`）前额外强制保存一次 2D 地图（`final_map_*.yaml/.pgm`），不受 20 秒周期限制。
 
 保存栅格地图：`ros2 run nav2_map_server map_saver_cli -f <YOUR_MAP_NAME>  --ros-args -r __ns:=/red_standard_robot1`
 
@@ -198,7 +229,45 @@ slam:=False \
 use_robot_state_pub:=True
 ```
 
-### 2.4 Launch Arguments
+### 2.4 跨机器人复用同一张地图（初始位姿不同）
+
+推荐流程是 `Robot1` 固定建图，`Robot2` 固定定位，不要求两车同起点。
+
+1. `Robot1` 产图（`slam:=True`）  
+   会持续生成：
+   - 2D 栅格图：`pb2025_nav_bringup/map/reality/auto_map_*.pgm/.yaml`（或仿真目录）
+   - 3D 点云图：`point_lio/PCD/scans.pcd`
+
+2. 导出“版本化地图包”（同一时间戳 yaml/pgm + pcd）
+
+```bash
+ros2 run pb2025_nav_bringup export_map_bundle.py \
+  --map-dir /home/tompig/pfa-nav-main/src/pb2025_sentry_nav/pb2025_nav_bringup/map/reality \
+  --pcd-file /home/tompig/pfa-nav-main/src/pb2025_sentry_nav/point_lio/PCD/scans.pcd
+```
+
+脚本会输出 `map_bundles/map_bundle_<timestamp>/`，其中包含 `map.yaml`、`map.pgm`、`scans.pcd`。
+
+3. `Robot2` 消费地图包（`slam:=False`）
+
+```bash
+ros2 launch pb2025_nav_bringup rm_navigation_simulation_launch.py \
+  slam:=False \
+  map:=<BUNDLE_DIR>/map.yaml \
+  prior_pcd_file:=<BUNDLE_DIR>/scans.pcd
+```
+
+`localization_launch.py` 会启动 `map_server + small_gicp_relocalization + loam_interface`，持续估计 `map->odom`。
+
+4. 初始位姿建议  
+`Robot2` 启动后建议在 RViz 发一次 `initialpose`，可明显提升 GICP 收敛速度与稳定性；不发也可自收敛，但更依赖场景重叠度。
+
+5. 必要一致性约束
+- `lidar_frame/base_frame/robot_base_frame` 在两车参数中需一致。
+- 激光雷达外参和重力方向配置需可互换（同标定体系）。
+- 地图包必须来自同一世界坐标定义，避免跨场景混用。
+
+### 2.5 Launch Arguments
 
 启动参数在仿真和实车中大部分是通用的。以下是所有启动参数表格的图例。
 
@@ -227,7 +296,7 @@ use_robot_state_pub:=True
 > [!TIP]
 > 关于本项目更多细节与实车部署指南，请前往 [Wiki](https://github.com/SMBU-PolarBear-Robotics-Team/pb2025_sentry_nav/wiki)
 
-### 2.5 手柄控制
+### 2.6 手柄控制
 
 默认情况下，PS4 手柄控制已开启。键位映射关系详见 [nav2_params.yaml](./pb2025_nav_bringup/config/simulation/nav2_params.yaml) 中的 `teleop_twist_joy_node` 部分。
 

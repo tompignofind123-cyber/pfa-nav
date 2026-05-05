@@ -1,0 +1,57 @@
+{
+  "created_at": "2026-05-04T17:13:21.315937",
+  "script_dir": "/home/tompig/pfa-nav-main",
+  "transform": {
+    "dyaw_rad": 0.0,
+    "dyaw_deg": 0.0,
+    "dx_m": 0.0,
+    "dy_m": 0.0
+  },
+  "source_lidar_mount": {
+    "x": 0.16,
+    "y": 0.0,
+    "z": 0.256,
+    "roll": 0.0,
+    "pitch": 0.0,
+    "yaw_rad": 1.5707963267948966,
+    "yaw_deg": 90.0,
+    "comment": "Lidar mount on the recording robot's base. PCD/2D-map points were lifted from the lidar's startup frame to base_footprint frame BEFORE the cross-robot dyaw/dx/dy was applied."
+  },
+  "effective_total_transform": {
+    "yaw_rad": 1.5707963267948966,
+    "yaw_deg": 90.0,
+    "dx_m": 0.16,
+    "dy_m": 0.0,
+    "dz_m": 0.256,
+    "comment": "Combined transform actually applied to every PCD point: p' = Rz(yaw) * p + (dx, dy, dz). When source_lidar_mount is null, this equals the user-supplied (dyaw, dx, dy)."
+  },
+  "source": {
+    "map_yaml": "/home/tompig/桌面/auto_map_20260504_022720.yaml",
+    "map_image": "/home/tompig/桌面/auto_map_20260504_022720.pgm",
+    "pcd": "/home/tompig/桌面/scans_20260504_022907.pcd"
+  },
+  "output": {
+    "root_dir": "/home/tompig/pfa-nav-main/for_sentry",
+    "source_assets": "/home/tompig/pfa-nav-main/for_sentry/source_assets",
+    "converted_assets": "/home/tompig/pfa-nav-main/for_sentry/converted_assets"
+  },
+  "new_init_pose": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0,
+    "roll": 0.0,
+    "pitch": 0.0,
+    "yaw_rad": 0.0,
+    "yaw_deg": 0.0,
+    "yaml_snippet": "init_pose: [0.000000, 0.000000, 0.0, 0.0, 0.0, 0.000000]",
+    "comment": "Robot's pose in the CONVERTED map frame, assuming it starts at the same physical spot where the source SLAM session began (i.e. SLAM origin = (0,0,0) in the source frame). Paste the yaml_snippet into nav2_params.yaml's init_pose field. When --source-lidar-mount is supplied, the lidar-mount lift is absorbed into the map/PCD itself, so init_pose is still just (dx, dy, dyaw)."
+  },
+  "notes": [
+    "Both 2D map and 3D PCD are transformed by the same rigid motion.",
+    "The .pgm pixels are physically rotated/translated to match; the saved yaml's origin yaw is always 0.",
+    "Each PCD point becomes p' = Rz(total_yaw) * p + (total_dx, total_dy, total_dz).",
+    "If --source-lidar-mount was supplied, total_* already absorbs the lidar->base lift.",
+    "If the robot now starts somewhere else, recompute init_pose accordingly,",
+    "or use RViz '2D Pose Estimate' to seed GICP at runtime."
+  ]
+}

@@ -25,6 +25,13 @@
         <xmacro_block name="rplidar_a2" prefix="front_" parent="chassis" pose="0.155 0 0.1 0 0 0" update_rate="10" samples="400" visualize="false"/>
         <!--livox-->
         <xmacro_block name="livox" prefix="front_" parent="chassis" pose="0.16 0.0 0.18 ${pi/6} 0.0 ${pi/2}" update_rate="10" samples="400"/>
+        
+        
+        <!--<xmacro_block name="livox" prefix="front_" parent="chassis" pose="0.16 0.0 0.18 ${pi/6} 0.0 ${pi/2}" update_rate="10" samples="400"/>这是平躺-->
+  
+        <!--<xmacro_block name="livox" prefix="front_" parent="chassis" pose="0.16 0.0 0.18 0 -${pi/2} ${pi}" update_rate="10" samples="400"/这是竖立向前-->
+  
+  
         <!--industrial camera (disabled for performance)-->
         <!--<xmacro_block name="industrial_camera" prefix="front_" parent="gimbal_pitch" pose="0.1 0 0.045 0 0 0" update_rate="10" horizontal_fov="1" width="640" height="480"/>-->
 

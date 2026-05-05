@@ -1,0 +1,52 @@
+{
+  "created_at": "2026-05-01T23:56:43.240286",
+  "source": {
+    "yaml_path": "/home/tompig/pfa-nav-main/_tmp_conversion_check/source_assets/auto_map_20260430_184513.yaml",
+    "image_path": "/home/tompig/pfa-nav-main/_tmp_conversion_check/source_assets/auto_map_20260430_184513.pgm",
+    "resolution": 0.05,
+    "origin": [
+      -4.0,
+      -9.11,
+      0.0
+    ],
+    "shape": [
+      304,
+      563
+    ],
+    "n_obstacles": 9276
+  },
+  "reference": {
+    "yaml_path": "/home/tompig/pfa-nav-main/src/pb2025_sentry_nav/pb2025_nav_bringup/map/simulation/rmuc_2026.yaml",
+    "image_path": "/home/tompig/pfa-nav-main/src/pb2025_sentry_nav/pb2025_nav_bringup/map/simulation/rmuc_2026.pgm",
+    "resolution": 0.05,
+    "origin": [
+      -4.02,
+      -9.12,
+      0.0
+    ],
+    "shape": [
+      306,
+      564
+    ],
+    "n_obstacles": 6704
+  },
+  "search_params": {
+    "coarse_step_deg": 5.0,
+    "fine_step_deg": 0.5,
+    "fine_window_deg": 5.0,
+    "match_distance_m": 0.3,
+    "voxel_size_m": 0.2,
+    "yaw_only_zero": false
+  },
+  "result": {
+    "dyaw_rad": -3.1346609521707838,
+    "dyaw_deg": -179.60284276384593,
+    "dx": 20.180679909227102,
+    "dy": -2.8805991640140793,
+    "inlier_fraction": 0.9434023285899095,
+    "mean_inlier_distance_m": 0.0552266333282794,
+    "match_distance_m": 0.3,
+    "voxel_size_m": 0.2
+  },
+  "to_apply_with_converter": "python3 hero_to_sentry_map_converter.py --no-interactive --hero-map-yaml _tmp_conversion_check/source_assets/auto_map_20260430_184513.yaml --hero-pcd <YOUR_PCD_PATH> --dyaw -3.1346609521707838 --dx 20.180679909227102 --dy -2.8805991640140793 --output-folder-name aligned --force"
+}

@@ -19,7 +19,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression, TextSubstitution
 from launch_ros.actions import LoadComposableNodes, Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
 from nav2_common.launch import RewrittenYaml
@@ -126,6 +126,28 @@ def generate_launch_description():
         parameters=[
             configured_params,
             {"prior_pcd.prior_pcd_map_path": prior_pcd_file},
+            {"pcd_save.pcd_save_en": True},
+        ],
+        arguments=["--ros-args", "--log-level", log_level],
+    )
+
+    # Publish the prior PCD on /prior_map for RViz visualization (blue point cloud).
+    # The nav stack uses bare TF frame names (e.g. "map", not "<ns>/map"), so we set
+    # frame_id="map" to match what other clouds and RViz Fixed Frame use.
+    #
+    # NOTE: For this to be correct, the prior PCD must already be in the
+    # base_footprint-anchored map frame -- NOT in point_lio's lidar-startup-
+    # anchored world frame. Use hero_to_sentry_map_converter.py with
+    # --source-lidar-mount to lift it before passing the .pcd here.
+    start_prior_pcd_publisher_node = Node(
+        package="pb2025_nav_bringup",
+        executable="prior_pcd_publisher.py",
+        name="prior_pcd_publisher",
+        output="screen",
+        parameters=[
+            {"file_name": prior_pcd_file},
+            {"frame_id": "map"},
+            {"publish_period_sec": 1.0},
         ],
         arguments=["--ros-args", "--log-level", log_level],
     )
@@ -252,6 +274,7 @@ def generate_launch_description():
 
     # Add the actions to launch all of the localiztion nodes
     ld.add_action(start_point_lio_node)
+    ld.add_action(start_prior_pcd_publisher_node)
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)
 
